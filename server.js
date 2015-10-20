@@ -1,36 +1,35 @@
 var server,
 	express = require( 'express' ),
-	busboy = require( 'connect-busboy' ),
+	Busboy = require( 'busboy' ),
 	app = express();
 
 app.set( 'views', './templates' );
 app.set( 'view engine', 'jade' );
-
-app.use( busboy() );
 
 app.get( '/', function ( req, res ) {
 	res.render( 'index', {} );
 } );
 
 app.post( '/', function ( req, res ) {
-	var infile, filename;
+	var infile, filename,
+		busboy = new Busboy( { headers: req.headers } );
 
-	req.busboy.on( 'finish', function () {
+	busboy.on( 'finish', function () {
 		console.log( 'busboy finished' );
 		infile.pipe( res );
 	} );
 
-	req.busboy.on( 'file', function ( fieldname, file, filename ) {
+	busboy.on( 'file', function ( fieldname, file, filename ) {
 		console.log( 'Got file: ' + filename );
 		infile = file;
 	} );
 
-	req.busboy.on( 'field', function ( fieldname, val ) {
+	busboy.on( 'field', function ( fieldname, val ) {
 		console.log( 'Got filename: ' + val );
 		filename = val;
 	} );
 
-	req.pipe( req.busboy );
+	req.pipe( busboy );
 } );
 
 server = app.listen( 2777, function () {
